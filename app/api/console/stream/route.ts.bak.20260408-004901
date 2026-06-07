@@ -1,0 +1,271 @@
+/**
+ * Console Streaming API Route
+ * 
+ * This route acts as a secure proxy between the Next.js frontend and the VPS bridge.
+ * It handles streaming AI responses for the console chat interface.
+ * 
+ * Requirements: 1.1, 1.2, 5.1, 5.6, 5.7, 5.8
+ */
+
+import { NextRequest } from 'next/server'
+import { getConfig } from '@/lib/config'
+import { createErrorResponse } from '@/types/errors'
+import type { ConsoleStreamRequest } from '@/types/console'
+
+// FIXED: TIMEOUT INCREASE — raised from 60s to 120s to support long AI responses
+export const maxDuration = 120
+
+
+export async function POST(request: NextRequest) {
+  try {
+    const body = await request.json() as ConsoleStreamRequest
+    const { session_id, organization_id, messages } = body
+
+    if (!session_id || typeof session_id !== 'string') {
+      return Response.json(
+        createErrorResponse(
+          'ValidationError',
+          'session_id is required and must be a string'
+        ),
+        { status: 400 }
+      )
+    }
+
+    if (!organization_id || typeof organization_id !== 'string') {
+      return Response.json(
+        createErrorResponse(
+          'ValidationError',
+          'organization_id is required and must be a string'
+        ),
+        { status: 400 }
+      )
+    }
+
+    if (!Array.isArray(messages) || messages.length === 0) {
+      return Response.json(
+        createErrorResponse(
+          'ValidationError',
+          'messages must be a non-empty array'
+        ),
+        { status: 400 }
+      )
+    }
+
+    for (const message of messages) {
+      if (!message.role || !['user', 'assistant'].includes(message.role)) {
+        return Response.json(
+          createErrorResponse(
+            'ValidationError',
+            'Each message must have a role of "user" or "assistant"'
+          ),
+          { status: 400 }
+        )
+      }
+      if (typeof message.content !== 'string') {
+        return Response.json(
+          createErrorResponse(
+            'ValidationError',
+            'Each message must have a content string'
+          ),
+          { status: 400 }
+        )
+      }
+    }
+
+    const config = getConfig()
+    const vpsBridgeUrl = `${config.VPS_BRIDGE_URL}/bridge/aira?stream=true`
+
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), 115_000)
+
+    let vpsBridgeResponse: Response
+    try {
+      vpsBridgeResponse = await fetch(vpsBridgeUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Api-Key': config.VPS_BRIDGE_API_KEY,
+          'X-Stream': 'true', // Signal that we want streaming
+        },
+        body: JSON.stringify({
+          message: messages.filter((m) => m.role === 'user').at(-1)?.content ?? '',
+          mode: 'console',
+          channel: 'console_ui',
+          entrypoint: 'console',
+          context: {
+            session_id,
+            organization_id,
+            history: messages,
+          },
+        }),
+        signal: controller.signal,
+      })
+    } finally {
+      clearTimeout(timeoutId)
+    }
+
+    if (!vpsBridgeResponse.ok) {
+      let errorMessage = 'Failed to connect to VPS bridge'
+      let errorDetails: any = undefined
+
+      try {
+        const errorData = await vpsBridgeResponse.json() as any
+        errorMessage = errorData.message || errorData.detail || errorMessage
+        errorDetails = errorData.details
+      } catch {
+        errorMessage = vpsBridgeResponse.statusText || errorMessage
+      }
+
+      return Response.json(
+        createErrorResponse('VPSBridgeError', errorMessage, errorDetails),
+        { status: vpsBridgeResponse.status }
+      )
+    }
+
+    // VPS bridge now returns SSE stream directly
+    // Just forward it to the client without buffering
+    if (!vpsBridgeResponse.body) {
+      return Response.json(
+        createErrorResponse('VPSBridgeError', 'VPS bridge response has no body'),
+        { status: 502 }
+      )
+    }
+
+    // Helper function to calculate organic typewriter delay based on character
+    function getChunkDelay(piece: string): number {
+      const last = piece[piece.length - 1] ?? ''
+      if (last === '\n') return 150 + Math.random() * 100   // newline: 150–250ms
+      if ('.,!?;:'.includes(last)) return 80 + Math.random() * 60  // punctuation: 80–140ms
+      if (last === ' ') return 40 + Math.random() * 20      // space: 40–60ms
+      return 18 + Math.random() * 14                         // regular char: 18–32ms
+    }
+
+    // Stream with organic typewriter delays
+    const { readable, writable } = new TransformStream()
+    const writer = writable.getWriter()
+    const enc = new TextEncoder()
+
+    // Process VPS bridge stream with delays
+    ;(async () => {
+      try {
+        const reader = vpsBridgeResponse.body!.getReader()
+        const decoder = new TextDecoder()
+        let buffer = ''
+        let displayText = ''
+        const step = 1
+
+        while (true) {
+          const { done, value } = await reader.read()
+          if (done) break
+
+          buffer += decoder.decode(value, { stream: true })
+          const lines = buffer.split('\n')
+          buffer = lines.pop() || ''
+
+          for (const line of lines) {
+            if (!line.trim()) continue
+
+            // If it's a chunk event, extract content and accumulate
+            if (line.startsWith('data: ')) {
+              try {
+                const data = JSON.parse(line.slice(6))
+                if (data.type === 'chunk' && data.content) {
+                  displayText += data.content
+                } else {
+                  // Non-chunk events (done, error, etc) — forward immediately
+                  await writer.write(enc.encode(line + '\n\n'))
+                }
+              } catch {
+                // Not JSON, forward as-is
+                await writer.write(enc.encode(line + '\n\n'))
+              }
+            } else {
+              // Non-data lines, forward as-is
+              await writer.write(enc.encode(line + '\n'))
+            }
+          }
+        }
+
+        // Now emit displayText with typewriter delays
+        for (let i = 0; i < displayText.length; i += step) {
+          const piece = displayText.slice(i, i + step)
+          await writer.write(
+            enc.encode(
+              `data: ${JSON.stringify({ type: 'chunk', content: piece })}\n\n`
+            )
+          )
+          await new Promise(resolve => setTimeout(resolve, getChunkDelay(piece)))
+        }
+
+        // Send done event
+        await writer.write(
+          enc.encode(
+            `data: ${JSON.stringify({ type: 'done' })}\n\n`
+          )
+        )
+
+        await writer.close()
+      } catch (error) {
+        console.error('Stream processing error:', error)
+        await writer.abort(error instanceof Error ? error : new Error(String(error)))
+      }
+    })()
+
+    // Return the transformed stream to client
+    return new Response(readable, {
+      headers: {
+        'Content-Type': 'text/event-stream; charset=utf-8',
+        'Cache-Control': 'no-cache, no-transform',
+        Connection: 'keep-alive',
+        'X-Accel-Buffering': 'no',
+      },
+    })
+  } catch (error) {
+    console.error('Console stream error:', error)
+
+    if (error instanceof Error && error.message.includes('Missing required environment variables')) {
+      return Response.json(
+        createErrorResponse(
+          'ConfigurationError',
+          'Server configuration error. Please contact support.',
+          { originalError: error.message }
+        ),
+        { status: 500 }
+      )
+    }
+
+    if (error instanceof TypeError && error.message.includes('fetch')) {
+      return Response.json(
+        createErrorResponse(
+          'NetworkError',
+          'Service temporarily unavailable. Please try again.',
+          { originalError: error.message }
+        ),
+        { status: 503 }
+      )
+    }
+
+    if (error instanceof Error && error.name === 'AbortError') {
+      return Response.json(
+        createErrorResponse(
+          'TimeoutError',
+          'Request timed out. Try sending a shorter message or smaller file.',
+          { originalError: 'AbortError: request exceeded 115s' }
+        ),
+        { status: 504 }
+      )
+    }
+
+    return Response.json(
+      createErrorResponse(
+        'InternalError',
+        'An unexpected error occurred. Please try again.',
+        {
+          originalError:
+            error instanceof Error ? error.message : String(error),
+        }
+      ),
+      { status: 500 }
+    )
+  }
+}
