@@ -7,17 +7,32 @@ services:
       dockerfile: Dockerfile
     container_name: avry-console
     ports:
-      - "9001:9001"
+      - "8086:8086"
     environment:
-      NODE_ENV: production
-      NEXT_PUBLIC_BACKEND_URL: http://localhost:8000
-      NEXT_PUBLIC_API_URL: http://localhost:8081
-      NEXT_PUBLIC_DIAGNOSTICS_URL: http://localhost:8085
-      NEXT_PUBLIC_BLUEPRINT_URL: http://localhost:8083
+      - NODE_ENV=production
+      - PORT=8086
+      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-http://avry-backend:8081}
+      - VPS_BRIDGE_URL=${VPS_BRIDGE_URL:-http://avry-zeroclaw:8090}
+      - NEXT_PUBLIC_SUPABASE_URL=${NEXT_PUBLIC_SUPABASE_URL}
+      - NEXT_PUBLIC_SUPABASE_ANON_KEY=${NEXT_PUBLIC_SUPABASE_ANON_KEY}
+      - COMPOSIO_API_KEY=${COMPOSIO_API_KEY}
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9001"]
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8086/health"]
       interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 10s
+      start_period: 15s
+    networks:
+      - aivory-network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.avry-console.rule=Host(`console.aivory.id`)"
+      - "traefik.http.routers.avry-console.entrypoints=websecure"
+      - "traefik.http.routers.avry-console.tls.certresolver=letsencrypt"
+      - "traefik.http.services.avry-console.loadbalancer.server.port=8086"
+
+networks:
+  aivory-network:
+    name: aivory-network
+    external: true
