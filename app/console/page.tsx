@@ -1,5 +1,7 @@
 "use client"
 
+import dynamic from 'next/dynamic';
+import React from 'react';
 import { useRouter } from "next/navigation"
 import { useState, useRef, useEffect, useCallback } from "react"
 import Image from "next/image"
@@ -77,7 +79,7 @@ const CHIPS: ChipData[] = [
 
 const MAX_VISIBLE_INTEGRATIONS = 4
 
-export default function ConsolePage() {
+function DashboardConsole() {
   const router = useRouter()
 
   // UI-only state
@@ -657,3 +659,7 @@ export default function ConsolePage() {
     </div>
   )
 }
+
+export default dynamic(() => Promise.resolve(DashboardConsole), {
+  ssr: false,
+});

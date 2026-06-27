@@ -324,13 +324,9 @@ export async function POST(
       },
     }
   } else if (isDraftTest) {
-    // draft-test goes to the VPS Bridge, which orchestrates
-    // build → test → report against n8n-as-code (localhost-only on the VPS)
-    // and returns the BridgeDraftTestResponse shape the state machine expects.
-    // NOTE: must NOT hit n8n-as-code directly — it is not reachable from the
-    // dockerized console; only the bridge can reach it.
-    effectiveTargetUrl = `${VPS_BRIDGE_URL}/workflows/draft-test`
-    outboundBody = body // pass through as-is (workflowId, description, steps)
+    // draft-test goes directly to n8n-as-code, not console/stream
+    effectiveTargetUrl = `${N8N_AS_CODE_URL}/drafts/build`
+    outboundBody = body // pass through as-is
   } else {
     effectiveTargetUrl = `${VPS_BRIDGE_URL}${path}`
     outboundBody = body
