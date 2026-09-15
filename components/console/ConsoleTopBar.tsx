@@ -9,7 +9,7 @@ export default function ConsoleTopBar({ onNewChat }: ConsoleTopBarProps) {
   const { activeMode } = useMode()
 
   return (
-    <div className="flex items-center justify-between px-6 py-3 border-b border-white/5 bg-[#353531] backdrop-blur sticky top-0 z-10 h-12">
+    <div className="flex items-center justify-between px-6 py-3 border-b border-white/5 bg-[var(--bg-main)] backdrop-blur sticky top-0 z-10 h-12">
       <div className="flex items-center gap-3">
         <ModeSelector />
         {activeMode !== 'Console' && (

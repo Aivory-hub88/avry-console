@@ -40,7 +40,7 @@ export default function ActionList({ items, onSelect }: ActionListProps) {
             cursor-pointer
             transition-all duration-150
             hover:border-[#2dd4a0]/30
-            focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2dd4a0]/50 focus-visible:ring-offset-1 focus-visible:ring-offset-[#353531]
+            focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2dd4a0]/50 focus-visible:ring-offset-1 focus-visible:ring-offset-[#18181b]
           "
         >
           {/* Number badge */}

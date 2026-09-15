@@ -138,7 +138,7 @@ export default function ChatInput({ onSend, disabled = false, prefill, hasPendin
       )}
 
       {/* Input card — matches reference: rounded container, text on top, icons below */}
-      <div className="bg-[#42423f] border border-white/10 rounded-2xl overflow-hidden">
+      <div className="bg-[#1f1f22] border border-white/10 rounded-2xl overflow-hidden">
         {/* Textarea area */}
         <textarea
           ref={textareaRef}
@@ -169,7 +169,7 @@ export default function ChatInput({ onSend, disabled = false, prefill, hasPendin
 
           {/* Send button */}
           <button
-            className="w-8 h-8 rounded-[20px] bg-[#353532] text-white border border-[#666864] hover:bg-[#444440] disabled:bg-zinc-600 disabled:text-zinc-400 disabled:border-transparent transition-colors flex items-center justify-center"
+            className="w-8 h-8 rounded-[20px] bg-[#1f1f22] text-white border border-zinc-600 hover:bg-white/10 disabled:bg-zinc-600 disabled:text-zinc-400 disabled:border-transparent transition-colors flex items-center justify-center"
             onClick={handleSend}
             disabled={!canSend}
             aria-label="Send"

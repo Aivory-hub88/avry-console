@@ -1,10 +1,10 @@
 @import "tailwindcss";
 
 :root {
-  --bg-main: #353531;
-  --bg-elevated: #3a3a36;
-  --bg-soft: #353531;
-  --bg-card: #3a3a36;
+  --bg-main: #18181b;
+  --bg-elevated: #27272a;
+  --bg-soft: #18181b;
+  --bg-card: #27272a;
   --border-soft: rgba(255,255,255,0.07);
   --border-card: rgba(255,255,255,0.05);
   --text-primary: #f7f7f7;
@@ -13,8 +13,8 @@
   --accent: #00e59e;
   --accent-dim: rgba(0, 229, 158, 0.12);
 
-  --surface-secondary: #353531;
-  --surface-tertiary: #3a3a36;
+  --surface-secondary: #18181b;
+  --surface-tertiary: #27272a;
   --border-subtle: rgba(255,255,255,0.07);
 
   --card-bg: rgba(255,255,255,0.03);
@@ -48,7 +48,7 @@ html {
 
 body {
   font-family: var(--font-inter-tight), 'Inter Tight', Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  background: #353531;
+  background: var(--bg-main);
   color: var(--text-primary);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -153,10 +153,10 @@ body {
   padding: 24px 20px 30px;
   background: linear-gradient(
     to top,
-    #353531 0%,
-    rgba(53,53,49,0.98) 50%,
-    rgba(53,53,49,0.85) 80%,
-    rgba(53,53,49,0) 100%
+    var(--bg-main) 0%,
+    rgb(from var(--bg-main) r g b / 0.98) 50%,
+    rgb(from var(--bg-main) r g b / 0.85) 80%,
+    rgb(from var(--bg-main) r g b / 0) 100%
   );
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
@@ -168,7 +168,7 @@ body {
   margin: 0 auto;
   display: flex;
   align-items: flex-end;
-  background: #42423f;
+  background: #1f1f22;
   border: 1px solid var(--border-soft);
   border-radius: 28px;
   padding: 12px 16px;
@@ -269,7 +269,7 @@ body {
   bottom: 70px;
   left: 0;
   width: 230px;
-  background: linear-gradient(145deg, #2a2926, #252420);
+  background: var(--bg-elevated);
   border: 1px solid var(--border-soft);
   border-radius: 20px;
   overflow: hidden;
@@ -899,7 +899,7 @@ h1, h2, h3, h4, h5, h6,
 }
 
 .console-connect-banner {
-  background: #2d2d2b;
+  background: #17171a;
   border-top: 1px solid rgba(255, 255, 255, 0.05);
 }
 
@@ -945,7 +945,7 @@ h1, h2, h3, h4, h5, h6,
 .console-dropdown {
   position: absolute;
   width: 320px;
-  background: #2a2926;
+  background: var(--bg-elevated);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 16px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.22);
@@ -977,7 +977,7 @@ h1, h2, h3, h4, h5, h6,
 
 /* ── Global Button Styles ── */
 .btn-style-a {
-  background: #42423f;
+  background: #3f3f46;
   border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 10px;
   color: rgba(255, 255, 255, 0.75);
@@ -989,7 +989,7 @@ h1, h2, h3, h4, h5, h6,
 }
 
 .btn-style-a:hover:not(:disabled) {
-  background: #4e4e4b;
+  background: #52525b;
   border-color: rgba(255, 255, 255, 0.12);
 }
 
@@ -999,7 +999,7 @@ h1, h2, h3, h4, h5, h6,
 }
 
 .btn-style-b {
-  background: #666864;
+  background: #3f3f46;
   border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 10px;
   color: rgba(255, 255, 255, 0.75);
@@ -1011,7 +1011,7 @@ h1, h2, h3, h4, h5, h6,
 }
 
 .btn-style-b:hover:not(:disabled) {
-  background: #757875;
+  background: #52525b;
   border-color: rgba(255, 255, 255, 0.12);
 }
 

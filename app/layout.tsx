@@ -1,6 +1,7 @@
 import type { Metadata } from "next"
 import { Inter_Tight } from "next/font/google"
 import "@/styles/globals.css"
+import { RouterProvider } from "@/contexts/RouterContext"
 
 const interTight = Inter_Tight({
   subsets: ["latin"],
@@ -21,8 +22,8 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={interTight.variable}>
-      <body className={`bg-[#353531] ${interTight.className}`}>
-        {children}
+      <body className={`bg-[var(--bg-main)] ${interTight.className}`}>
+        <RouterProvider>{children}</RouterProvider>
       </body>
     </html>
   )

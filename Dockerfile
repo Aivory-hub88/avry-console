@@ -5,7 +5,7 @@ FROM base AS deps
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
 COPY package.json package-lock.json* ./
-RUN npm ci
+RUN npm ci --legacy-peer-deps
 
 # Rebuild the source code only when needed
 FROM base AS builder
@@ -53,9 +53,9 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
 USER nextjs
 
-EXPOSE 9001
+EXPOSE 8086
 
-ENV PORT=9001
+ENV PORT=8086
 ENV HOSTNAME="0.0.0.0"
 
 CMD ["node", "server.js"]

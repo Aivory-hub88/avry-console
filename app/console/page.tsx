@@ -204,7 +204,7 @@ function DashboardConsole() {
   const activeChipData = CHIPS.find((chip) => chip.id === activeChip)
 
   return (
-    <div className="flex flex-col h-full bg-[#353531]">
+    <div className="flex flex-col h-full bg-[var(--bg-main)]">
       <ConsoleTopBar onNewChat={handleNewChat} />
 
       <div className="flex-1 flex flex-col overflow-hidden h-full">
@@ -362,7 +362,7 @@ function DashboardConsole() {
                           key={integration.id}
                           title={integration.name}
                           className="flex h-[24px] w-[24px] shrink-0 items-center justify-center rounded-full transition-transform duration-150 hover:scale-110 overflow-hidden"
-                          style={{ background: "#42423f" }}
+                          style={{ background: "var(--bg-elevated)" }}
                         >
                           {integration.iconPath && (
                             <Image
@@ -497,7 +497,7 @@ function DashboardConsole() {
                 )}
               </div>
             </div>
-            <div className="sticky bottom-0 z-10 px-8 pt-2 pb-4" style={{ background: 'linear-gradient(to bottom, transparent, #353531 24px)' }}>
+            <div className="sticky bottom-0 z-10 px-8 pt-2 pb-4" style={{ background: 'linear-gradient(to bottom, transparent, var(--bg-main) 24px)' }}>
               <div className="max-w-[800px] mx-auto">
                 <ChatInput
                   onSend={(text: string, atts: Attachment[]) => handleSend(text, atts)}
@@ -529,7 +529,7 @@ function DashboardConsole() {
       <aside
         className={`fixed top-0 right-0 h-full w-72 z-40 flex flex-col transition-transform duration-300 ease-in-out ${sidebarOpen ? "translate-x-0" : "translate-x-full"}`}
         style={{
-          background: "#353531",
+          background: "var(--bg-main)",
           backdropFilter: "blur(16px)",
           borderLeft: "1px solid rgba(255, 255, 255, 0.08)",
         }}
@@ -585,7 +585,7 @@ function DashboardConsole() {
         >
           <div 
             className="relative w-full max-w-[680px] rounded-2xl border border-white/10 p-8 shadow-2xl"
-            style={{ background: "#42423f" }}
+            style={{ background: "var(--bg-elevated)" }}
             onClick={(e) => e.stopPropagation()}
           >
             <button
@@ -611,7 +611,7 @@ function DashboardConsole() {
                       setConnectorsOpen(false)
                       router.push("/integrations")
                     }}
-                    className="group relative flex flex-col items-center gap-3 rounded-xl border border-white/10 bg-[#353531] p-4 transition hover:border-white/20 hover:bg-[#3a3a36]"
+                    className="group relative flex flex-col items-center gap-3 rounded-xl border border-white/10 bg-[var(--bg-main)] p-4 transition hover:border-white/20 hover:bg-white/10"
                   >
                     {isConnected && (
                       <div className="absolute right-2 top-2 flex h-5 w-5 items-center justify-center rounded-full bg-emerald-500/20">
@@ -648,7 +648,7 @@ function DashboardConsole() {
                   setConnectorsOpen(false)
                   router.push("/integrations")
                 }}
-                className="rounded-[20px] bg-[#353532] px-5 py-2.5 text-sm font-medium text-[#f7f7f7] border border-[#666864] transition hover:bg-[#444440]"
+                className="rounded-[20px] bg-[var(--bg-main)] px-5 py-2.5 text-sm font-medium text-[#f7f7f7] border border-zinc-600 transition hover:bg-white/10"
               >
                 Manage Integrations
               </button>
