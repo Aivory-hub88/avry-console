@@ -51,8 +51,6 @@ export async function POST(req: NextRequest) {
           source_tab: 'console',
         },
       }
-      console.log('[debug] bridgeUrl:', bridgeUrl)
-      console.log('[debug] bridgePayload:', JSON.stringify(bridgePayload).substring(0, 500))
 
       bridgeResponse = await fetch(bridgeUrl, {
         method: 'POST',
@@ -62,7 +60,6 @@ export async function POST(req: NextRequest) {
         body: JSON.stringify(bridgePayload),
         signal: controller.signal,
       })
-      console.log('[debug] bridgeResponse status:', bridgeResponse.status, 'content-type:', bridgeResponse.headers.get('content-type'))
     } finally {
       clearTimeout(timeoutId)
     }
@@ -73,32 +70,15 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: true, message: msg }, { status: bridgeResponse.status })
     }
 
-    // Bridge now returns proper SSE format - forward it directly to client
-    const { readable, writable } = new TransformStream()
-    const writer = writable.getWriter()
-    const reader = bridgeResponse.body!.getReader()
-    const decoder = new TextDecoder()
-
-    ;(async () => {
-      try {
-        while (true) {
-          const { done, value } = await reader.read()
-          if (done) break
-          
-          const chunk = decoder.decode(value, { stream: true })
-          await writer.write(new TextEncoder().encode(chunk))
-        }
-      } finally {
-        try { await writer.close() } catch { /* already closed */ }
-      }
-    })()
-
-    return new NextResponse(readable, {
+    // Zero-copy passthrough: forward the bridge SSE body directly instead of
+    // decode→re-encode per chunk (removes one hop of per-token overhead)
+    return new NextResponse(bridgeResponse.body, {
       status: 200,
       headers: {
         'Content-Type': 'text/event-stream',
         'Cache-Control': 'no-cache, no-transform',
         'Connection': 'keep-alive',
+        'X-Accel-Buffering': 'no',
       },
     })
   } catch (error: any) {

@@ -189,42 +189,27 @@ export async function* streamConsoleResponse(
 }
 
 
-// TYPEWRITER — client-side animation for console streaming
-// Collect all chunk text, then re-emit with delay and accumulated content
-const TYPEWRITER_STEP_MS = 40  // delay between pieces (ms)
-const TYPEWRITER_CHARS = 10    // characters per piece
-
+// TYPEWRITER — pass-through streaming (no artificial delay).
+// Previously this buffered the ENTIRE response then replayed it at
+// 10 chars / 40ms, adding seconds of fake latency after the LLM was done.
+// Now it accumulates and forwards immediately so TTFT = real TTFT.
+// Callers rely on chunk.content being the FULL text so far (not a delta),
+// so we keep that contract: each yield carries the accumulated string.
 export async function* typewriterStream(
   source: AsyncIterable<StreamChunk>
 ): AsyncGenerator<StreamChunk> {
   let fullText = ''
-  const nonChunkEvents: StreamChunk[] = []
 
-  // Collect all chunk text from source first
   for await (const ev of source) {
     if (ev.type === 'chunk' && typeof ev.content === 'string') {
       fullText += ev.content
+      yield { type: 'chunk', content: fullText } as StreamChunk
     } else {
-      // Save non-chunk events (workflowspec, done, error) to emit after animation
-      nonChunkEvents.push(ev)
-      if (ev.type === 'error') {
-        // If error, forward immediately and stop
-        yield ev
+      // Forward non-chunk events (workflowspec, done, error) immediately
+      yield ev
+      if (ev.type === 'error' || ev.type === 'done') {
         return
       }
     }
-  }
-
-  // Animate fullText per TYPEWRITER_CHARS characters with delay
-  let displayed = ''
-  for (let i = 0; i < fullText.length; i += TYPEWRITER_CHARS) {
-    displayed += fullText.slice(i, i + TYPEWRITER_CHARS)
-    yield { type: 'chunk', content: displayed } as StreamChunk
-    await new Promise(resolve => setTimeout(resolve, TYPEWRITER_STEP_MS))
-  }
-
-  // Emit remaining events (workflowspec, done, etc) after animation
-  for (const ev of nonChunkEvents) {
-    yield ev
   }
 }

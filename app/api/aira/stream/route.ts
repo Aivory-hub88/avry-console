@@ -60,27 +60,9 @@ export async function POST(request: NextRequest) {
       return Response.json({ error: true, message: msg }, { status: bridgeResponse.status })
     }
 
-    // Bridge now returns proper SSE format - forward it directly to client
-    const { readable, writable } = new TransformStream()
-    const writer = writable.getWriter()
-    const reader = bridgeResponse.body!.getReader()
-    const decoder = new TextDecoder()
-
-    ;(async () => {
-      try {
-        while (true) {
-          const { done, value } = await reader.read()
-          if (done) break
-          
-          const chunk = decoder.decode(value, { stream: true })
-          await writer.write(new TextEncoder().encode(chunk))
-        }
-      } finally {
-        try { await writer.close() } catch { /* already closed */ }
-      }
-    })()
-
-    return new Response(readable, {
+    // Zero-copy passthrough: forward the bridge SSE body directly instead of
+    // decode→re-encode per chunk (removes one hop of per-token overhead)
+    return new Response(bridgeResponse.body, {
       headers: {
         'Content-Type': 'text/event-stream',
         'Cache-Control': 'no-cache, no-transform',

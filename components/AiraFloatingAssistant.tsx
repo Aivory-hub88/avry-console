@@ -149,7 +149,7 @@ export default function AiraFloatingAssistant() {
     }
     document.addEventListener("keydown", trap)
     return () => document.removeEventListener("keydown", trap)
-  }, [open, messages])
+  }, [open])
 
   const handleClose = useCallback(() => {
     setOpen(false)

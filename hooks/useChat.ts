@@ -65,8 +65,13 @@ export function useChat({
 
     const imageAtts = atts.filter(a => a.content?.startsWith('data:image/'))
     const textAtts = atts.filter(a => a.content && !a.content.startsWith('data:image/'))
+    // Truncate attachment content (matches AiraFloatingAssistant MAX=20000) —
+    // without this a large file balloons the POST payload and slows everything
+    const MAX_ATT = 20000
+    const trunc = (t: string) =>
+      t.length <= MAX_ATT ? t : t.substring(0, MAX_ATT) + '\n\n[Content truncated]'
     const attachmentText = [
-      ...textAtts.map(a => `[Attached file: ${a.filename}]\n${a.content}`),
+      ...textAtts.map(a => `[Attached file: ${a.filename}]\n${trunc(a.content ?? '')}`),
       ...imageAtts.map(a => `[Attached image: ${a.filename} — image preview shown above]`),
     ].join('\n\n')
     const userContent = attachmentText ? `${text}\n\n${attachmentText}` : text

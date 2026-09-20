@@ -326,22 +326,27 @@ export default function ChatMessage({ role, content, isStreaming = false, agenti
               </div>
             )}
 
-            {/* Rendered markdown content */}
+            {/* Rendered content — plain text while streaming (cheap per-token),
+                full markdown only when done (avoids re-parsing markdown +
+                syntax highlighting on every token) */}
             {hasTextContent && (
               <div className="prose-aivory">
-                <ReactMarkdown
-                  remarkPlugins={[remarkGfm]}
-                  components={markdownComponents}
-                >
-                  {normalizedContent}
-                </ReactMarkdown>
-                {/* Streaming cursor — brand color blinking bar */}
-                {isStreaming && (
-                  <span
-                    className="inline-block w-[3px] h-[1.125rem] bg-[#00e59e] ml-0.5 align-middle rounded-sm"
-                    style={{ animation: 'blink 1s step-end infinite' }}
-                    aria-hidden="true"
-                  />
+                {isStreaming ? (
+                  <p className="text-base leading-[1.6] text-[#f7f7f7] whitespace-pre-wrap">
+                    {content}
+                    <span
+                      className="inline-block w-[3px] h-[1.125rem] bg-[#00e59e] ml-0.5 align-middle rounded-sm"
+                      style={{ animation: 'blink 1s step-end infinite' }}
+                      aria-hidden="true"
+                    />
+                  </p>
+                ) : (
+                  <ReactMarkdown
+                    remarkPlugins={[remarkGfm]}
+                    components={markdownComponents}
+                  >
+                    {normalizedContent}
+                  </ReactMarkdown>
                 )}
               </div>
             )}
