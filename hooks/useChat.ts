@@ -8,7 +8,7 @@ import { parseLLMResponse } from '@/lib/parseLLMResponse'
 import { useSession } from './useSession'
 import type { Attachment } from '@/components/UploadMenu'
 
-interface Message { id: string; role: "user" | "assistant"; content: string; isStreaming?: boolean; attachments?: Attachment[] }
+interface Message { id: string; role: "user" | "assistant"; content: string; isStreaming?: boolean; attachments?: Attachment[]; speaker?: { agent_type: string; name: string } }
 interface ChatSession { id: string; title: string; messages: Message[]; createdAt: number; pinned?: boolean }
 
 const DEFAULT_SUGGESTIONS = [
@@ -107,6 +107,16 @@ export function useChat({
         processEvent(chunk as any)
         if (chunk.type === "chunk" && chunk.content) {
           finalContent = chunk.content
+          setMessages(p => p.map(m => m.id === assistantId ? { ...m, content: finalContent } : m))
+        } else if ((chunk as any).type === "delegation" && (chunk as any).text) {
+          // Mention-style: delegated agent speaks as its own bubble.
+          const d = chunk as any
+          const mentionId = assistantId + "-mention-" + Date.now().toString() + "-" + Math.floor(Math.random() * 1e6).toString()
+          const mention = { id: mentionId, role: "assistant" as const, content: String(d.text), speaker: { agent_type: String(d.agent_type || "agent"), name: String(d.name || d.agent_type || "Agent") } }
+          setMessages(p => [...p, mention])
+        } else if ((chunk as any).type === "replace" && typeof (chunk as any).content === "string") {
+          // Main bubble swaps to the [Agent]-stripped text (no duplicate paste).
+          finalContent = (chunk as any).content
           setMessages(p => p.map(m => m.id === assistantId ? { ...m, content: finalContent } : m))
         } else if (chunk.type === "done") {
           const normalized = normalizeAssistantText(finalContent)

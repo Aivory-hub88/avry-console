@@ -23,6 +23,7 @@ interface ChatMessageProps {
   onAcceptRoute?: () => void
   onDismissRoute?: () => void
   attachments?: Attachment[]
+  speaker?: { agent_type: string; name: string }
 }
 
 /**
@@ -257,7 +258,7 @@ const markdownComponents = {
 
 /* ── Main component ────────────────────────────────────────────────────────── */
 
-export default function ChatMessage({ role, content, isStreaming = false, agenticState, onRegenerate, onEdit, pendingRoute, onAcceptRoute, onDismissRoute, attachments }: ChatMessageProps) {
+export default function ChatMessage({ role, content, isStreaming = false, agenticState, onRegenerate, onEdit, pendingRoute, onAcceptRoute, onDismissRoute, attachments, speaker }: ChatMessageProps) {
   const noop = useCallback(() => {}, [])
   const hasAgenticPhases = !!(agenticState && agenticState.phases.length > 0)
   const hasTextContent = !!content
@@ -289,18 +290,31 @@ export default function ChatMessage({ role, content, isStreaming = false, agenti
         /* AI MESSAGE — avatar + clean Manus typography */
         <>
         <div className="flex items-start gap-4 group relative">
-          {/* Avatar */}
-          <div className="w-9 h-9 rounded-full flex-shrink-0 mt-0.5 flex items-center justify-center bg-accent/20">
-            <Image
-              src="/Aivory_Avatar.svg"
-              alt="Aivory"
-              width={18}
-              height={18}
-            />
-          </div>
+          {/* Avatar — delegated speaker gets an initial tile + name header */}
+          {speaker ? (
+            <div className="w-9 h-9 rounded-full flex-shrink-0 mt-0.5 flex items-center justify-center bg-[#00e59e]/20 border border-[#00e59e]/30">
+              <span className="text-sm font-semibold text-[#00e59e]">
+                {(speaker.name || '?').charAt(0).toUpperCase()}
+              </span>
+            </div>
+          ) : (
+            <div className="w-9 h-9 rounded-full flex-shrink-0 mt-0.5 flex items-center justify-center bg-accent/20">
+              <Image
+                src="/Aivory_Avatar.svg"
+                alt="Aivory"
+                width={18}
+                height={18}
+              />
+            </div>
+          )}
 
           {/* Message content — max-w-[800px] for readability */}
           <div className="flex-1 px-1 py-1 text-base text-[#f7f7f7] leading-[1.6] min-w-0 max-w-[800px] text-left">
+            {speaker && (
+              <div className="mb-1 text-[13px] font-medium text-[#00e59e]">
+                @{speaker.name}
+              </div>
+            )}
             {/* Thinking indicator */}
             {isStreaming && !content && !hasAgenticPhases && (
               <div className="flex items-center gap-2">
