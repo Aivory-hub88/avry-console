@@ -455,6 +455,7 @@ function DashboardConsole() {
                         content={m.content} 
                         isStreaming={m.isStreaming} 
                         attachments={m.attachments}
+                        speaker={(m as any).speaker}
                         agenticState={m.role === 'assistant' && m.id === messages[messages.length - 1]?.id ? agenticState : undefined}
                         onAcceptRoute={acceptRoute}
                         onDismissRoute={dismissRoute}

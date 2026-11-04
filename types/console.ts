@@ -33,11 +33,15 @@ export interface ConsoleStreamRequest {
  *   workflow specification that can be sent to the Workflow canvas
  */
 export interface StreamChunk {
-  type: 'chunk' | 'done' | 'error' | 'workflow_spec'
+  type: 'chunk' | 'done' | 'error' | 'workflow_spec' | 'delegation' | 'replace'
   content?: string
   error?: string
   /** Set on synthetic 'done' events — true if at least one content chunk was received */
   receivedContent?: boolean
+  /** Delegated speaker turn — present when type === 'delegation' */
+  agent_type?: string
+  name?: string
+  text?: string
   /** Structured workflow spec payload — present when type === 'workflow_spec' */
   workflow?: WorkflowSpec
 }
