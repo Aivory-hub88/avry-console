@@ -23,17 +23,12 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
+import { requireUrl } from '@/lib/requireEnv'
 
-const VPS_BRIDGE_URL = (
-  process.env.VPS_BRIDGE_URL ||
-  process.env.NEXT_PUBLIC_VPS_BRIDGE_URL ||
-  'http://43.156.108.96:3003'
-).replace(/\/$/, '')
+const VPS_BRIDGE_URL = requireUrl('VPS_BRIDGE_URL', 'NEXT_PUBLIC_VPS_BRIDGE_URL')
 
 // n8n-as-code service URL (used for draft-test)
-const N8N_AS_CODE_URL = (
-  process.env.N8N_AS_CODE_URL || 'http://43.156.108.96:3500'
-).replace(/\/$/, '')
+const n8nAsCodeUrl = () => requireUrl('N8N_AS_CODE_URL')
 
 // Per-endpoint timeouts (ms).
 const TIMEOUT_BY_PATH: Record<string, number> = {
@@ -325,7 +320,7 @@ export async function POST(
     }
   } else if (isDraftTest) {
     // draft-test goes directly to n8n-as-code, not console/stream
-    effectiveTargetUrl = `${N8N_AS_CODE_URL}/drafts/build`
+    effectiveTargetUrl = `${n8nAsCodeUrl()}/drafts/build`
     outboundBody = body // pass through as-is
   } else {
     effectiveTargetUrl = `${VPS_BRIDGE_URL}${path}`

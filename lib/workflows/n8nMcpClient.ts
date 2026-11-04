@@ -1,3 +1,4 @@
+import { requireUrl } from '../requireEnv'
 /**
  * n8n-MCP Client (Next.js side)
  * Connects to the self-hosted n8n-MCP server for real-time node schema
@@ -10,7 +11,7 @@
  */
 
 // n8n-MCP server runs on the VPS. Set N8N_MCP_URL in .env.local to override.
-const MCP_URL = process.env.N8N_MCP_URL || 'http://43.156.108.96:3020'
+const mcpUrl = () => requireUrl('N8N_MCP_URL')
 const MCP_AUTH = process.env.N8N_MCP_AUTH_TOKEN || ''
 const CACHE_TTL_MS = 10 * 60 * 1000
 
@@ -106,7 +107,7 @@ async function mcpRequest(method: string, params: Record<string, unknown>, retry
   if (MCP_AUTH) headers['Authorization'] = `Bearer ${MCP_AUTH}`
   if (sessionId) headers['mcp-session-id'] = sessionId
 
-  const res = await fetch(`${MCP_URL}/mcp`, {
+  const res = await fetch(`${mcpUrl()}/mcp`, {
     method: 'POST',
     headers,
     body: JSON.stringify({ jsonrpc: '2.0', id, method, params }),

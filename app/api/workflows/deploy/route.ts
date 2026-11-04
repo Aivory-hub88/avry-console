@@ -1,3 +1,4 @@
+import { requireUrl } from '@/lib/requireEnv'
 /**
  * POST /api/workflows/deploy
  *
@@ -24,11 +25,7 @@ import { NextRequest, NextResponse } from 'next/server'
 
 // ── Config ────────────────────────────────────────────────────────────────────
 
-const VPS_BRIDGE_URL = (
-  process.env.VPS_BRIDGE_URL ||
-  process.env.NEXT_PUBLIC_VPS_BRIDGE_URL ||
-  'http://43.156.108.96:3003'
-).replace(/\/$/, '')
+const VPS_BRIDGE_URL = requireUrl('VPS_BRIDGE_URL', 'NEXT_PUBLIC_VPS_BRIDGE_URL')
 
 const VPS_BRIDGE_API_KEY =
   process.env.VPS_BRIDGE_API_KEY ||

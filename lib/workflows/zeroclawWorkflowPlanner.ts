@@ -1,7 +1,9 @@
 // lib/workflows/zeroclawWorkflowPlanner.ts
 // Calls Zeroclaw to decompose natural language into workflow steps
 
-const VPS_BRIDGE_URL = process.env.VPS_BRIDGE_URL || 'http://43.156.108.96:3003';
+import { requireUrl } from '../requireEnv';
+
+const VPS_BRIDGE_URL = requireUrl('VPS_BRIDGE_URL');
 
 export interface WorkflowStep {
   id: string;

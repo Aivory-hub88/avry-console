@@ -1,3 +1,4 @@
+import { requireUrl } from '../requireEnv'
 /**
  * Canonical n8n node payload protocol for Aivory → n8n conversion.
  *
@@ -16,7 +17,8 @@
  *   - Steps containing "send response", "return", "respond", "send email" → action role
  */
 
-export const ZEROCLAW_WEBHOOK_URL = process.env.ZEROCLAW_WEBHOOK_URL || 'http://43.156.108.96:3003/webhook'
+export const zeroclawWebhookUrl = (): string =>
+  process.env.ZEROCLAW_WEBHOOK_URL || `${requireUrl('VPS_BRIDGE_URL', 'NEXT_PUBLIC_VPS_BRIDGE_URL')}/webhook`
 
 export type NodeRole = 'trigger' | 'ai' | 'filter' | 'action'
 
@@ -35,7 +37,7 @@ export const NODE_PROTOCOL = {
     typeVersion: 4,
     parameters: {
       method: 'POST',
-      url: ZEROCLAW_WEBHOOK_URL,
+      url: zeroclawWebhookUrl(),
       authentication: 'none',
       sendBody: true,
       specifyBody: 'json',

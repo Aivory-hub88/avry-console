@@ -1,3 +1,4 @@
+import { requireUrl } from '../requireEnv'
 /**
  * Universal workflow node mapping engine.
  * Detects intent from step action text and maps to appropriate n8n node.
@@ -21,7 +22,8 @@ export type NodeIntent =
   | 'schedule'
   | 'ai'
 
-export const ZEROCLAW_WEBHOOK_URL = process.env.ZEROCLAW_WEBHOOK_URL || 'http://43.156.108.96:3003/webhook'
+export const zeroclawWebhookUrl = (): string =>
+  process.env.ZEROCLAW_WEBHOOK_URL || `${requireUrl('VPS_BRIDGE_URL', 'NEXT_PUBLIC_VPS_BRIDGE_URL')}/webhook`
 
 // Intent detection patterns (priority order matters)
 // NOTE: Use \b word boundaries for short words like "if", "ai" to avoid substring matches
@@ -315,7 +317,7 @@ export function mapIntentToN8nNode(
         typeVersion: 4,
         parameters: {
           method: 'POST',
-          url: ZEROCLAW_WEBHOOK_URL,
+          url: zeroclawWebhookUrl(),
           authentication: 'none',
           sendBody: true,
           specifyBody: 'json',

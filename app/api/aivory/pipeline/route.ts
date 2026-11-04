@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { requireUrl } from '@/lib/requireEnv'
 
 export async function POST(req: NextRequest) {
   try {
@@ -15,7 +16,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const bridgeBase = process.env.VPS_BRIDGE_URL || process.env.AIVORY_BRIDGE_URL || 'http://43.156.108.96:3003'
+    const bridgeBase = requireUrl('VPS_BRIDGE_URL', 'AIVORY_BRIDGE_URL')
     const bridgeUrl = `${bridgeBase}/llm/aivory/pipeline`
 
     const res = await fetch(bridgeUrl, {
