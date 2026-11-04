@@ -1,3 +1,4 @@
+import { requireUrl } from '@/lib/requireEnv'
 /**
  * POST /api/workflows/clarify
  *
@@ -23,11 +24,7 @@ import { NextRequest, NextResponse } from 'next/server'
 
 // ── Config ────────────────────────────────────────────────────────────────────
 
-const VPS_BRIDGE_URL = (
-  process.env.VPS_BRIDGE_URL ||
-  process.env.NEXT_PUBLIC_VPS_BRIDGE_URL ||
-  'http://43.156.108.96:3003'
-).replace(/\/$/, '')
+const VPS_BRIDGE_URL = requireUrl('VPS_BRIDGE_URL', 'NEXT_PUBLIC_VPS_BRIDGE_URL')
 
 const UPSTREAM_PATH = '/console/stream'
 const TIMEOUT_MS    = 30_000   // 30s — route through Zeroclaw webhook

@@ -1,3 +1,4 @@
+import { requireUrl } from '../requireEnv'
 /**
  * n8n-as-code-service client
  *
@@ -7,14 +8,14 @@
 
 // n8n-as-code-service runs on the VPS at port 3500.
 // Set N8N_AS_CODE_URL in .env.local to override (e.g. for local dev tunnels).
-const BASE_URL = process.env.N8N_AS_CODE_URL || 'http://43.156.108.96:3500';
+const baseUrl = () => requireUrl('N8N_AS_CODE_URL');
 
 async function n8nAsCodePost<T>(path: string, body: object, timeout = 45000): Promise<T> {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeout);
 
   try {
-    const res = await fetch(`${BASE_URL}${path}`, {
+    const res = await fetch(`${baseUrl()}${path}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),

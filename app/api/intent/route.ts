@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { requireUrl } from '@/lib/requireEnv'
 
 const FALLBACK = NextResponse.json(
   { rawagentresponse: '{"route":"console","confidence":0,"reason":"Staying in Console","tabLabel":"Console"}' },
@@ -8,7 +9,7 @@ const FALLBACK = NextResponse.json(
 export async function POST(req: NextRequest) {
   const body = await req.json().catch(() => ({}))
   console.log('[/api/intent] POST received, body:', JSON.stringify(body).slice(0, 300))
-  const bridgeUrl = process.env.VPS_BRIDGE_URL ?? 'http://43.156.108.96:3003'
+  const bridgeUrl = requireUrl('VPS_BRIDGE_URL')
 
   try {
     // 8s hard timeout — intent classification is best-effort, never blocks the user

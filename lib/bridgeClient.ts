@@ -1,3 +1,4 @@
+import { requireUrl } from './requireEnv'
 /**
  * VPS Bridge API Client
  *
@@ -14,11 +15,7 @@
  * Auth: VPS Bridge runs internal-only (network isolation), no API key required.
  */
 
-const BASE_URL = (
-  process.env.VPS_BRIDGE_URL ||
-  process.env.NEXT_PUBLIC_VPS_BRIDGE_URL ||
-  'http://43.156.108.96:3003'
-).replace(/\/$/, '');
+const BASE_URL = requireUrl('VPS_BRIDGE_URL', 'NEXT_PUBLIC_VPS_BRIDGE_URL');
 
 if (!BASE_URL) {
   throw new Error('VPS_BRIDGE_URL is not defined. Set it in .env.local');
